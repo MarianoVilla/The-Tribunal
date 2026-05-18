@@ -24,6 +24,8 @@ const MIGRATION_SQL = `
     safety_message TEXT,
     safety_type TEXT,
     appeal_of_id TEXT REFERENCES trials(id),
+    appeal_ground TEXT,
+    appeal_text TEXT,
     is_public INTEGER NOT NULL DEFAULT 0,
     model_used TEXT,
     pipeline_version TEXT NOT NULL DEFAULT '1.0',

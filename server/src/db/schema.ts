@@ -17,6 +17,8 @@ export const trials = sqliteTable('trials', {
   safetyMessage: text('safety_message'),
   safetyType: text('safety_type'),
   appealOfId: text('appeal_of_id'),
+  appealGround: text('appeal_ground'),
+  appealText: text('appeal_text'),
   isPublic: integer('is_public').notNull().default(0),
   modelUsed: text('model_used'),
   pipelineVersion: text('pipeline_version').notNull().default('1.0'),

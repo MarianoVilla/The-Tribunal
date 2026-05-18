@@ -8,6 +8,7 @@ import {
   finalVerdictPrompt,
 } from './prompts.js'
 import type { TribunalType } from '../tribunals.js'
+import type { AppealContext } from './appeal-context.js'
 
 function truncateToWordLimit(text: string, maxWords: number): string {
   const words = text.trim().split(/\s+/)
@@ -86,9 +87,10 @@ export interface NormalizeResult {
 
 export async function runNormalize(
   caseText: string,
-  tribunal: TribunalType
+  tribunal: TribunalType,
+  appealContext?: AppealContext | null
 ): Promise<NormalizeResult> {
-  const prompt = normalizePrompt(caseText, tribunal)
+  const prompt = normalizePrompt(caseText, tribunal, appealContext ?? null)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.3, maxTokens: 400 })
@@ -116,9 +118,10 @@ export interface ProsecutionResult {
 export async function runProsecution(
   caseText: string,
   caseSummary: string,
-  tribunal: TribunalType
+  tribunal: TribunalType,
+  appealContext?: AppealContext | null
 ): Promise<ProsecutionResult> {
-  const prompt = prosecutionPrompt(caseText, caseSummary, tribunal)
+  const prompt = prosecutionPrompt(caseText, caseSummary, tribunal, appealContext ?? null)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.9, maxTokens: 600 })
@@ -145,9 +148,10 @@ export interface DefenseResult {
 export async function runDefense(
   caseText: string,
   caseSummary: string,
-  tribunal: TribunalType
+  tribunal: TribunalType,
+  appealContext?: AppealContext | null
 ): Promise<DefenseResult> {
-  const prompt = defensePrompt(caseText, caseSummary, tribunal)
+  const prompt = defensePrompt(caseText, caseSummary, tribunal, appealContext ?? null)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.9, maxTokens: 600 })
@@ -180,9 +184,10 @@ export async function runPanel(
   caseSummary: string,
   prosecutionArg: string,
   defenseArg: string,
-  tribunal: TribunalType
+  tribunal: TribunalType,
+  appealContext?: AppealContext | null
 ): Promise<PanelResult> {
-  const prompt = panelPrompt(caseText, caseSummary, prosecutionArg, defenseArg, tribunal)
+  const prompt = panelPrompt(caseText, caseSummary, prosecutionArg, defenseArg, tribunal, appealContext ?? null)
   const { content, model, rawBody } = await callOpenRouterWithRetry([
     { role: 'user', content: prompt },
   ], { temperature: 0.85, maxTokens: 1200 })
@@ -229,7 +234,8 @@ export async function runFinalVerdict(
   prosecutionArg: string,
   defenseArg: string,
   panelJudgments: Array<{ agentName: string; judgment: string; leaning: string }>,
-  tribunal: TribunalType
+  tribunal: TribunalType,
+  appealContext?: AppealContext | null
 ): Promise<FinalVerdictResult> {
   const prompt = finalVerdictPrompt(
     caseText,
@@ -239,7 +245,8 @@ export async function runFinalVerdict(
     prosecutionArg,
     defenseArg,
     panelJudgments,
-    tribunal
+    tribunal,
+    appealContext ?? null
   )
 
   const { content, model, rawBody } = await callOpenRouterWithRetry([

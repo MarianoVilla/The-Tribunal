@@ -10,6 +10,29 @@ import {
   runPanel,
   runFinalVerdict,
 } from './steps.js'
+import type { AppealContext } from './appeal-context.js'
+import type { AppealGround } from '../types.js'
+
+export type { AppealContext }
+
+async function buildAppealContext(trial: typeof trials.$inferSelect): Promise<AppealContext | null> {
+  if (!trial.appealOfId || !trial.appealGround) return null
+
+  const [original] = await db.select().from(trials).where(eq(trials.id, trial.appealOfId)).limit(1)
+  if (!original || original.status !== 'completed') return null
+
+  return {
+    originalCaseText: original.caseText,
+    originalTribunalType: original.tribunalType,
+    originalCharge: original.charge ?? '',
+    originalVerdict: original.verdict ?? '',
+    originalFinalReasoning: original.finalReasoning ?? '',
+    originalSentence: original.sentence ?? '',
+    newTribunalType: trial.tribunalType,
+    appealGround: trial.appealGround as AppealGround,
+    appealText: trial.appealText ?? '',
+  }
+}
 
 const PIPELINE_VERSION = '1.0'
 
@@ -54,6 +77,7 @@ export async function runPipeline(trialId: string): Promise<void> {
     if (!tribunal) throw new Error(`Unknown tribunal type: ${trial.tribunalType}`)
 
     const caseText = trial.caseText
+    const appealContext = await buildAppealContext(trial)
 
     const keywordCheck = quickKeywordCheck(caseText)
     if (!keywordCheck.safe) {
@@ -67,7 +91,7 @@ export async function runPipeline(trialId: string): Promise<void> {
     }
 
     await setStep(trialId, 'normalizing')
-    const normalizeResult = await runNormalize(caseText, tribunal)
+    const normalizeResult = await runNormalize(caseText, tribunal, appealContext)
     rawResponses.push(normalizeResult.rawBody)
 
     if (!normalizeResult.isSafe) {
@@ -90,8 +114,8 @@ export async function runPipeline(trialId: string): Promise<void> {
 
     await setStep(trialId, 'prosecuting')
     const [prosecutionResult, defenseResult] = await Promise.all([
-      runProsecution(caseText, normalizeResult.caseSummary, tribunal),
-      runDefense(caseText, normalizeResult.caseSummary, tribunal),
+      runProsecution(caseText, normalizeResult.caseSummary, tribunal, appealContext),
+      runDefense(caseText, normalizeResult.caseSummary, tribunal, appealContext),
     ])
 
     rawResponses.push(prosecutionResult.rawBody)
@@ -116,7 +140,8 @@ export async function runPipeline(trialId: string): Promise<void> {
       normalizeResult.caseSummary,
       prosecutionResult.argument,
       defenseResult.argument,
-      tribunal
+      tribunal,
+      appealContext
     )
     rawResponses.push(panelResult.rawBody)
 
@@ -142,7 +167,8 @@ export async function runPipeline(trialId: string): Promise<void> {
       prosecutionResult.argument,
       defenseResult.argument,
       panelResult.judgments,
-      tribunal
+      tribunal,
+      appealContext
     )
     rawResponses.push(finalResult.rawBody)
 

@@ -1,5 +1,16 @@
 export type TrialStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'safety_blocked'
 
+export const APPEAL_GROUNDS = [
+  'new_context',
+  'wrong_tribunal',
+  'mitigating_context_ignored',
+  'sentence_too_harsh',
+  'reasoning_flawed',
+  'verdict_too_soft',
+] as const
+
+export type AppealGround = typeof APPEAL_GROUNDS[number]
+
 export type CurrentStep =
   | 'normalizing'
   | 'prosecuting'
@@ -50,6 +61,8 @@ export interface TrialResult {
   sentence: string
   shareCard: ShareCard
   appealOfId: string | null
+  appealGround: AppealGround | null
+  appealText: string | null
   isPublic: boolean
 }
 

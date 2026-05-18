@@ -1,17 +1,25 @@
 import { useState } from 'react'
+import type { AppealGround } from '../types'
+
+interface AppealParams {
+  trialId: string
+  tribunalType: string
+  appealGround: AppealGround
+  appealText: string
+}
 
 export function useAppeal() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const appeal = async (trialId: string, tribunalType: string): Promise<{ id: string } | null> => {
+  const appeal = async ({ trialId, tribunalType, appealGround, appealText }: AppealParams): Promise<{ id: string } | null> => {
     setLoading(true)
     setError(null)
     try {
       const res = await fetch(`/api/trials/${trialId}/appeal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tribunalType }),
+        body: JSON.stringify({ tribunalType, appealGround, appealText }),
       })
       const data = await res.json()
       if (!res.ok) {

@@ -8,6 +8,7 @@ import { TRIBUNAL_IDS } from '../tribunals.js'
 import { runPipeline, SAFETY_RESOURCES } from '../pipeline/index.js'
 import { getSampleTrial } from '../samples.js'
 import type { TrialResponse } from '../types.js'
+import { APPEAL_GROUNDS } from '../types.js'
 
 const router = Router()
 
@@ -18,6 +19,8 @@ const CreateTrialSchema = z.object({
 
 const AppealSchema = z.object({
   tribunalType: z.enum(TRIBUNAL_IDS as [string, ...string[]]),
+  appealGround: z.enum(APPEAL_GROUNDS as unknown as [string, ...string[]]),
+  appealText: z.string().max(1000, 'Appeal text must be at most 1000 characters').optional().default(''),
 })
 
 function buildTrialResponse(
@@ -87,6 +90,8 @@ function buildTrialResponse(
     sentence: trial.sentence ?? '',
     shareCard,
     appealOfId: trial.appealOfId,
+    appealGround: trial.appealGround as typeof APPEAL_GROUNDS[number] | null,
+    appealText: trial.appealText ?? null,
     isPublic: trial.isPublic === 1,
   }
 }
@@ -170,7 +175,7 @@ router.post('/:id/appeal', async (req, res) => {
       return
     }
 
-    const { tribunalType } = body.data
+    const { tribunalType, appealGround, appealText } = body.data
 
     if (tribunalType === original.tribunalType) {
       res.status(400).json({ error: 'Appeal must use a different tribunal type' })
@@ -186,6 +191,8 @@ router.post('/:id/appeal', async (req, res) => {
       tribunalType,
       status: 'pending',
       appealOfId: original.id,
+      appealGround,
+      appealText: appealText || null,
       createdAt,
       pipelineVersion: '1.0',
     })

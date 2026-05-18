@@ -9,7 +9,8 @@ import { ShareButtons } from '../components/ShareButtons'
 import { AppealSelector } from '../components/AppealSelector'
 import { SafetyBlockedView } from '../components/SafetyBlockedView'
 import { ErrorState } from '../components/ErrorState'
-import type { TrialResult, TribunalType } from '../types'
+import type { TrialResult, TribunalType, AppealGround } from '../types'
+import { APPEAL_GROUND_LABELS } from '../types'
 
 function getLeaningColors(verdict: string) {
   const v = verdict.toLowerCase()
@@ -34,12 +35,32 @@ function TrialSection({ children }: { children: React.ReactNode }) {
   )
 }
 
+function AppealBanner({ trial }: { trial: TrialResult }) {
+  if (!trial.appealOfId || !trial.appealGround) return null
+  return (
+    <div className="mb-2 rounded-lg border border-[#d4a853]/20 bg-[#d4a853]/5 px-4 py-3 text-center animate-fade-in">
+      <p className="text-[10px] uppercase tracking-widest text-[#d4a853] font-medium mb-1">Appellate Hearing</p>
+      <p className="text-xs text-[#9ca3af]">
+        Appeal of{' '}
+        <Link to={`/trial/${trial.appealOfId}`} className="text-[#d4a853] hover:underline">
+          original verdict
+        </Link>
+        {' '}on grounds: <span className="text-[#f0ead6]">{APPEAL_GROUND_LABELS[trial.appealGround as AppealGround]}</span>
+      </p>
+      {trial.appealText && (
+        <p className="text-xs text-[#6b7280] mt-1.5 italic max-w-lg mx-auto">"{trial.appealText}"</p>
+      )}
+    </div>
+  )
+}
+
 function VerdictHero({ trial }: { trial: TrialResult }) {
   const colors = getLeaningColors(trial.verdict)
+  const isAppeal = !!trial.appealOfId
   return (
     <div className="pt-10 pb-8 text-center animate-fade-in">
       <p className="text-[10px] uppercase tracking-[0.3em] text-[#6b7280] mb-3 font-medium">
-        The Tribunal has spoken
+        {isAppeal ? 'The Appellate Tribunal has spoken' : 'The Tribunal has spoken'}
       </p>
       <div
         className="inline-block rounded-2xl px-6 py-4 mb-4"
@@ -192,16 +213,12 @@ export function TrialPage() {
         {trial.appealOfId && (
           <>
             <span className="text-[#2a2a3e]">·</span>
-            <span className="text-xs text-[#4b5563]">
-              Appeal of{' '}
-              <Link to={`/trial/${trial.appealOfId}`} className="text-[#6b7280] hover:text-[#9ca3af] underline">
-                original case
-              </Link>
-            </span>
+            <span className="text-xs text-[#d4a853]">Appeal</span>
           </>
         )}
       </div>
 
+      <AppealBanner trial={trial} />
       <VerdictHero trial={trial} />
 
       <Divider />

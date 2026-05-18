@@ -117,6 +117,8 @@ export function getSampleTrial(id: string): TrialResult | null {
     sentence: sample.sentence,
     shareCard: sample.shareCard,
     appealOfId: null,
+    appealGround: null,
+    appealText: null,
     isPublic: true,
   }
 }
