@@ -37,7 +37,7 @@ export function TrialProgress({ currentStep }: Props) {
       </div>
 
       <div className="flex items-center gap-2 mb-8">
-        {STEPS.map((s, i) => (
+        {STEPS.map((_, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className={[
               'w-2 h-2 rounded-full transition-all duration-500',
