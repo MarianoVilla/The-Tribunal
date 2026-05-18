@@ -20,7 +20,7 @@ The Tribunal is a theatrical AI web app that runs a structured multi-step trial 
 
 ## Tech stack
 
-- Frontend: React 18 + Vite + TypeScript + Tailwind CSS 4
+- Frontend: React 19 + Vite + TypeScript + Tailwind CSS 4
 - Backend: Node.js 22 + Express 5 + TypeScript
 - Database: SQLite via `@libsql/client` + Drizzle ORM
 - LLM: OpenRouter API (configurable model)
