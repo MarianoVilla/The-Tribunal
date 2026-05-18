@@ -8,13 +8,15 @@ Put yourself on trial. Submit a dilemma, confession, opinion, or idea. A panel o
 
 The Tribunal is a theatrical AI web app that runs a structured multi-step trial on any user submission. It produces a shareable verdict card with a charge, prosecution argument, defense argument, panel judgments, final verdict, score, and sentence.
 
+Completed trials can be appealed: the appellant picks a new tribunal, states grounds for appeal, and the same pipeline runs in **appeal mode**, weighing the original ruling against the new arguments.
+
 ## Features
 
 - Five tribunal types: Moral, Relationship, Idea, Opinion, Roast
 - 4-call LLM pipeline (normalize, parallel prosecution/defense, panel, final verdict)
+- **Appeals** — appellate hearings in a different tribunal with selectable grounds and optional explanation; prompts include the original verdict, charge, reasoning, and sentence
 - Verdict card with charge, recognized/rejected blocks, and a full-width sentence footer; horizontal/vertical image download
-- Public gallery of verdicts
-- Appeals: re-try a case in a different tribunal
+- Public gallery of verdicts (plus built-in sample cases)
 - Two-tier safety filter (keyword pre-check + LLM review) with context-appropriate blocked-trial UI
 - Real-time trial progress via polling
 
@@ -57,7 +59,7 @@ cd ../client && npm install
 
 ## Running
 
-Start the backend (port 3001) — migrations run automatically on startup:
+Start the backend (port 3001). Schema bootstrap runs automatically on startup (`CREATE TABLE IF NOT EXISTS` in `server/src/index.ts`):
 
 ```bash
 cd server && npm run dev
@@ -70,6 +72,14 @@ cd client && npm run dev
 ```
 
 Open http://localhost:5173
+
+### Resetting the database
+
+The app does not run incremental migrations on existing databases. Schema changes only apply to **new** `trials` tables. To start fresh during development:
+
+1. Stop the server (it locks `server/data/tribunal.db`).
+2. Delete `server/data/tribunal.db` and any `tribunal.db-shm` / `tribunal.db-wal` files.
+3. Restart the server; tables are recreated on boot.
 
 ## Environment variables
 
@@ -86,31 +96,37 @@ Open http://localhost:5173
 ```
 client/         React + Vite + Tailwind
   src/
-    components/ Reusable UI components (VerdictCard, ShareButtons, ...)
+    components/ Reusable UI (VerdictCard, AppealSelector, SafetyBlockedView, ...)
     hooks/      useCreateTrial, useTrial, useAppeal, usePublish
     pages/      HomePage, TrialPage, GalleryPage
-    types/      Shared TypeScript types
+    types/      Shared TypeScript types (including APPEAL_GROUNDS)
 
 server/         Express + TypeScript + Drizzle
   src/
-    db/         Drizzle schema and libsql connection
-    pipeline/   LLM orchestration (4 calls per trial)
-      prompts.ts  Prompt templates per pipeline step
-      safety.ts   Keyword pre-check and blocked-trial copy
-    routes/     REST API endpoints
-    tribunals.ts Tribunal type definitions
-    types.ts    Shared response types
+    db/           Drizzle schema and libsql connection
+    pipeline/     LLM orchestration (same 4 steps for trials and appeals)
+      index.ts          runPipeline, buildAppealContext
+      appeal-context.ts AppealContext type and prompt block formatter
+      prompts.ts        Prompt templates (normal + appeal-mode branches)
+      steps.ts          OpenRouter calls + Zod validation
+      safety.ts         Keyword pre-check and blocked-trial copy
+    routes/       REST API endpoints
+    tribunals.ts  Tribunal type definitions
+    types.ts      Shared response types and APPEAL_GROUNDS
+    samples.ts    Built-in gallery/trial samples
   data/         tribunal.db (auto-created on first run, gitignored)
 ```
 
 ### LLM pipeline (4 rounds per trial)
 
-1. **Normalize** — Clerk summarizes the case and flags unsafe content (`isSafe`). Temperature 0.3.
-2. **Prosecution + defense** — Run in parallel. Each tribunal has its own tone and panel judges defined in `tribunals.ts`. Temperature 0.9.
-3. **Panel** — Four tribunal-specific judges each return a judgment, leaning, and key principle. Temperature 0.85.
-4. **Final verdict** — Judge picks from `possibleVerdicts`, assigns a score, and fills the share card (charge, recognized, rejected, sentence). Temperature 0.8.
+The same stages run for initial trials and appeals. When `appeal_of_id` is set, `buildAppealContext` loads the original completed trial and each prompt receives an appellate context block (original ruling + appeal ground + appellant text).
 
-Prompt text for each step lives in `server/src/pipeline/prompts.ts`. All calls use OpenRouter with `response_format: { type: 'json_object' }` and Zod validation in `steps.ts`.
+1. **Normalize** — Clerk summarizes the case and flags unsafe content (`isSafe`). Temperature 0.3.
+2. **Prosecution + defense** — Run in parallel. In appeal mode, prosecution defends the original ruling; defense argues the appeal has merit. Temperature 0.9.
+3. **Panel** — Four tribunal-specific judges each return a judgment, leaning, and key principle. In appeal mode, leanings reflect appeal merit. Temperature 0.85.
+4. **Final verdict** — Judge delivers a verdict and share card. Appeal mode uses appellate outcomes (e.g. Appeal denied, Appeal granted, Sentence reduced). Temperature 0.8.
+
+Prompt text lives in `server/src/pipeline/prompts.ts`. All calls use OpenRouter with `response_format: { type: 'json_object' }` and Zod validation in `steps.ts`.
 
 Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catches high-risk crisis language without calling the LLM.
 
@@ -130,9 +146,9 @@ Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catche
 |--------|------|-------------|
 | `POST` | `/api/trials` | Create trial, returns `{ id, status: "pending" }` immediately |
 | `GET` | `/api/trials/:id` | Poll for status and full result |
-| `POST` | `/api/trials/:id/appeal` | Re-try case in a different tribunal |
+| `POST` | `/api/trials/:id/appeal` | File appeal (see [Appeals](#appeals)) |
 | `POST` | `/api/trials/:id/publish` | Make verdict public in gallery |
-| `GET` | `/api/gallery` | Public verdicts (filter: recent, guilty, innocent, divisive) |
+| `GET` | `/api/gallery` | Public verdicts (`?filter=recent\|guilty\|innocent\|divisive`) |
 | `GET` | `/api/tribunals` | Tribunal type definitions |
 
 ## Tribunal types
@@ -142,6 +158,50 @@ Before step 1, a regex keyword check (`quickKeywordCheck` in `safety.ts`) catche
 - **Idea Tribunal** — startup and creative ideas
 - **Opinion Tribunal** — hot takes and arguments
 - **Roast Tribunal** — comedic, brutal, still insightful
+
+## Appeals
+
+An appeal reuses the existing pipeline in appeal mode. The appellant must choose a **different** tribunal, select one appeal ground, and may add supporting text (up to 1000 characters; strongly encouraged in the UI).
+
+### Appeal grounds
+
+| `appealGround` | Meaning |
+|----------------|---------|
+| `new_context` | New context or evidence was missing from the original trial |
+| `wrong_tribunal` | The case was judged by the wrong kind of tribunal |
+| `mitigating_context_ignored` | The original court ignored important mitigating circumstances |
+| `sentence_too_harsh` | The verdict may be fair, but the sentence was excessive |
+| `reasoning_flawed` | The original court's reasoning was inconsistent, unfair, or missed the point |
+| `verdict_too_soft` | The original court was too lenient |
+
+### Filing an appeal
+
+`POST /api/trials/:id/appeal` body:
+
+```json
+{
+  "tribunalType": "moral",
+  "appealGround": "reasoning_flawed",
+  "appealText": "The panel dismissed my anxiety as laziness when I had a medical diagnosis."
+}
+```
+
+Returns `{ id, status: "pending" }` for the new appeal trial. The original trial must be `completed`. `tribunalType` must differ from the original.
+
+Completed appeal results include `appealOfId`, `appealGround`, and `appealText`. The trial page shows an appellate banner and links back to the original verdict.
+
+### Appellate verdicts
+
+In appeal mode, the final judge chooses from outcomes such as:
+
+- Appeal denied
+- Appeal granted
+- Verdict modified
+- Sentence reduced
+- Sentence increased
+- Remanded to a more appropriate tribunal
+
+Share cards for appeals use the headline `THE APPELLATE TRIBUNAL HAS SPOKEN`.
 
 ## Safety
 
