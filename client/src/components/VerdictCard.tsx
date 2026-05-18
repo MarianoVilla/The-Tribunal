@@ -123,10 +123,16 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
           <p className="text-[9px] uppercase tracking-widest text-[#6b7280] mb-1">The court rejects</p>
           <p className="text-sm text-[#d4cbb8]">{shareCard.rejected}</p>
         </div>
-        <div className="rounded-xl p-3" style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
-          <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: colors.text }}>Sentence</p>
-          <p className="text-sm font-bold text-[#f0ead6]">{shareCard.sentence}</p>
-        </div>
+      </div>
+    )
+
+    const SentenceFooter = () => (
+      <div
+        className="px-6 py-5 text-center border-t"
+        style={{ background: colors.bg, borderColor: colors.border + '80' }}
+      >
+        <p className="text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: colors.text }}>Sentence</p>
+        <p className="text-base font-bold text-[#f0ead6] leading-snug">{shareCard.sentence}</p>
       </div>
     )
 
@@ -150,6 +156,7 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
               </div>
             </div>
           </div>
+          <SentenceFooter />
         </div>
       )
     }
@@ -166,6 +173,7 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
           <CaseRow />
           <DetailBlocks />
         </div>
+        <SentenceFooter />
       </div>
     )
   }

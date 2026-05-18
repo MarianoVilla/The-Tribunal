@@ -183,7 +183,7 @@ export function TrialPage() {
 
       <Divider />
       <TrialSection>
-        <ArgumentsSection trial={trial} />
+        <RulingSection trial={trial} />
       </TrialSection>
 
       <Divider />
@@ -193,7 +193,7 @@ export function TrialPage() {
 
       <Divider />
       <TrialSection>
-        <RulingSection trial={trial} />
+        <ArgumentsSection trial={trial} />
       </TrialSection>
 
       <Divider />
