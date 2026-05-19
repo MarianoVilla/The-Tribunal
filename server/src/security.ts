@@ -64,7 +64,7 @@ export function requireValidOrigin(req: Request, res: Response, next: NextFuncti
 
 export const authRateLimit = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 60,
+  limit: 20,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: { error: 'Too many auth requests. Please try again later.' },
@@ -72,7 +72,7 @@ export const authRateLimit = rateLimit({
 
 export const trialRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000,
-  limit: 20,
+  limit: 10,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: { error: 'Too many trial requests. Please try again later.' },
