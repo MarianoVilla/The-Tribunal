@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
     id: t.id,
     name: t.name,
     description: t.description,
+    icon: t.icon,
     tone: t.tone,
     scoreLabel: t.scoreLabel,
     possibleVerdicts: t.possibleVerdicts,

@@ -10,6 +10,7 @@ export interface TribunalType {
   id: TribunalId
   name: string
   description: string
+  icon: string
   tone: string
   scoreLabel: string
   possibleVerdicts: string[]
@@ -21,6 +22,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     id: 'moral',
     name: 'Moral Tribunal',
     description: 'Judges ethical choices using philosophical frameworks.',
+    icon: '⚖',
     tone: 'philosophical, rigorous, slightly solemn',
     scoreLabel: 'Immorality Score',
     possibleVerdicts: [
@@ -62,6 +64,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     id: 'relationship',
     name: 'Relationship Tribunal',
     description: 'Judges interpersonal behavior, communication, and emotional responsibility.',
+    icon: '💬',
     tone: 'empathetic but direct, emotionally intelligent, occasionally wry',
     scoreLabel: 'Asshole Score',
     possibleVerdicts: [
@@ -103,6 +106,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     id: 'idea',
     name: 'Idea Tribunal',
     description: 'Judges startup ideas, creative concepts, and product ideas.',
+    icon: '💡',
     tone: 'incisive, constructive, occasionally savage',
     scoreLabel: 'Concept Sillyness Score',
     possibleVerdicts: [
@@ -145,6 +149,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     id: 'opinion',
     name: 'Opinion Tribunal',
     description: 'Judges hot takes, arguments, beliefs, and opinions.',
+    icon: '🔥',
     tone: 'intellectually rigorous, sharp, occasionally Socratic',
     scoreLabel: 'Argument Weakness Score',
     possibleVerdicts: [
@@ -187,6 +192,7 @@ export const TRIBUNALS: Record<TribunalId, TribunalType> = {
     id: 'roast',
     name: 'Roast Tribunal',
     description: 'A harsher, more comedic court. Still insightful, but more brutal.',
+    icon: '😤',
     tone: 'comedic, sharp, brutally honest, theatrical',
     scoreLabel: 'Cursedness Score',
     possibleVerdicts: [

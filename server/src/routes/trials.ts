@@ -171,16 +171,11 @@ router.post('/:id/appeal', async (req, res) => {
 
     const body = AppealSchema.safeParse(req.body)
     if (!body.success) {
-      res.status(400).json({ error: body.error.issues[0]?.message ?? 'Invalid tribunal type' })
+      res.status(400).json({ error: body.error.issues[0]?.message ?? 'Invalid appeal input' })
       return
     }
 
     const { tribunalType, appealGround, appealText } = body.data
-
-    if (tribunalType === original.tribunalType) {
-      res.status(400).json({ error: 'Appeal must use a different tribunal type' })
-      return
-    }
 
     const id = nanoid(12)
     const createdAt = new Date().toISOString()

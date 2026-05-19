@@ -28,6 +28,7 @@ export interface TribunalType {
   id: TribunalId
   name: string
   description: string
+  icon: string
   tone: string
   scoreLabel: string
   possibleVerdicts: string[]

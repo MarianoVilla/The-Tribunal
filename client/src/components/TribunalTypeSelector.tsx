@@ -1,14 +1,6 @@
 import { useState } from 'react'
 import type { TribunalType } from '../types'
 
-const ICONS: Record<string, string> = {
-  moral: '⚖',
-  relationship: '💬',
-  idea: '💡',
-  opinion: '🔥',
-  roast: '😤',
-}
-
 interface TooltipProps {
   tribunal: TribunalType
 }
@@ -86,7 +78,7 @@ export function TribunalTypeSelector({ tribunals, selected, onSelect }: Props) {
               <div className="absolute top-2 right-2">
                 <InfoTooltip tribunal={t} />
               </div>
-              <div className="text-xl mb-1.5">{ICONS[t.id] || '⚖'}</div>
+              <div className="text-xl mb-1.5">{t.icon}</div>
               <div className={`text-xs font-bold mb-0.5 pr-4 ${isSelected ? 'text-[#d4a853]' : 'text-[#f0ead6]'}`}>
                 {t.name.replace(' Tribunal', '')}
               </div>

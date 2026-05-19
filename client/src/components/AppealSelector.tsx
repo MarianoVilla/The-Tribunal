@@ -6,27 +6,16 @@ import type { TribunalType, AppealGround } from '../types'
 
 interface Props {
   trialId: string
-  currentTribunalType: string
   tribunals: TribunalType[]
 }
 
-const ICONS: Record<string, string> = {
-  moral: '⚖',
-  relationship: '💬',
-  idea: '💡',
-  opinion: '🔥',
-  roast: '😤',
-}
-
-export function AppealSelector({ trialId, currentTribunalType, tribunals }: Props) {
+export function AppealSelector({ trialId, tribunals }: Props) {
   const [open, setOpen] = useState(false)
   const [selectedTribunal, setSelectedTribunal] = useState<string | null>(null)
   const [selectedGround, setSelectedGround] = useState<AppealGround | null>(null)
   const [appealText, setAppealText] = useState('')
   const { appeal, loading, error } = useAppeal()
   const navigate = useNavigate()
-
-  const available = tribunals.filter((t) => t.id !== currentTribunalType)
 
   const handleSubmit = async () => {
     if (!selectedTribunal || !selectedGround) return
@@ -50,7 +39,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
           onClick={() => setOpen(true)}
           className="text-sm text-[#9ca3af] hover:text-[#d4a853] transition-colors border border-[#1e1e2e] rounded-lg px-5 py-2.5 hover:border-[#d4a853]/30 cursor-pointer"
         >
-          ⚖ Appeal this verdict in another court
+          ⚖ Appeal this verdict
         </button>
       </div>
     )
@@ -69,7 +58,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
       <div className="mb-5">
         <p className="text-xs text-[#9ca3af] mb-2 font-medium">Choose your court of appeal</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {available.map((t) => (
+          {tribunals.map((t) => (
             <button
               key={t.id}
               onClick={() => setSelectedTribunal(t.id)}
@@ -80,7 +69,7 @@ export function AppealSelector({ trialId, currentTribunalType, tribunals }: Prop
                   : 'border-[#1e1e2e] hover:border-[#d4a853]/40 hover:bg-[#d4a853]/5'
               }`}
             >
-              <div className="text-lg mb-1">{ICONS[t.id]}</div>
+              <div className="text-lg mb-1">{t.icon}</div>
               <div className="text-xs font-bold text-[#f0ead6] mb-0.5">{t.name.replace(' Tribunal', '')}</div>
               <div className="text-[10px] text-[#6b7280]">{t.scoreLabel}</div>
             </button>
