@@ -85,7 +85,8 @@ function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boole
   if (published) {
     return (
       <span className="text-xs text-[#16a34a] flex items-center gap-1.5">
-        <span>✓</span> Published to Community Cases
+        <span>✓</span> Published to 
+        <Link to="/gallery" className="text-[#d4a853] hover:text-[#e8c477] transition-colors">The Gallery</Link>
       </span>
     )
   }
@@ -94,7 +95,7 @@ function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boole
     return (
       <div className="flex flex-col items-center gap-2">
         <p className="text-xs text-[#9ca3af] text-center max-w-[220px]">
-          This will make your case publicly visible in Community Cases.
+          This will make your case publicly visible in The Gallery.
         </p>
         <div className="flex items-center gap-2">
           <button
@@ -124,7 +125,7 @@ function PublishButton({ trialId, isPublic }: { trialId: string; isPublic: boole
         disabled={loading}
         className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors border border-[#1e1e2e] rounded-lg px-4 py-2 hover:border-[#2a2a3e] cursor-pointer disabled:opacity-50"
       >
-        🌐 Publish to Community Cases
+        🌐 Publish to The Gallery
       </button>
       {error && <p className="text-[10px] text-[#dc2626]">{error}</p>}
     </div>
@@ -199,7 +200,7 @@ export function TrialPage() {
         </Link>
         <span className="text-[#2a2a3e]">·</span>
         <Link to="/gallery" className="text-xs text-[#6b7280] hover:text-[#9ca3af] transition-colors">
-          Community Cases
+          The Gallery
         </Link>
         {trial.appealOfId && (
           <>

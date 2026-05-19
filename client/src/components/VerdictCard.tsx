@@ -81,7 +81,7 @@ export const VerdictCard = forwardRef<HTMLDivElement, Props>(
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-widest text-[#6b7280] mb-1">The case</p>
           <p className="text-sm text-[#d4cbb8] italic leading-relaxed line-clamp-4">
-            "{displayCase}"
+            {displayCase}
           </p>
         </div>
       </div>
