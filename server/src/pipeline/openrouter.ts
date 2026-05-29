@@ -16,12 +16,18 @@ export async function callOpenRouter(
   messages: OpenRouterMessage[],
   options: { temperature?: number; maxTokens?: number } = {}
 ): Promise<{ content: string; model: string; rawBody: string }> {
+  const localBase = process.env.LLM_BASE_URL
   const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) throw new Error('OPENROUTER_API_KEY is not set')
+
+  if (!localBase && !apiKey) throw new Error('OPENROUTER_API_KEY is not set')
 
   const model = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini'
   const siteUrl = process.env.OPENROUTER_SITE_URL || process.env.APP_BASE_URL || 'http://localhost:5173'
   const appName = process.env.OPENROUTER_APP_NAME || 'The Tribunal'
+
+  const endpoint = localBase
+    ? `${localBase}/v1/chat/completions`
+    : 'https://openrouter.ai/api/v1/chat/completions'
 
   const body = {
     model,
@@ -31,10 +37,10 @@ export async function callOpenRouter(
     response_format: { type: 'json_object' },
   }
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey ?? 'ollama'}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': siteUrl,
       'X-Title': appName,
