@@ -28,10 +28,55 @@ Completed trials can be appealed: the appellant picks a new tribunal, states gro
 - Database: SQLite via `@libsql/client` + Drizzle ORM
 - LLM: OpenRouter API (configurable model)
 
+## Running it for free (no API key needed)
+
+Don't want to pay for tokens? Fair enough. You can run The Tribunal completely free using a local LLM — no OpenRouter account, no credit card, no OpenAI key.
+
+The trick is to spin up your own inference server locally. Clone this stack, it handles everything:
+
+👉 **https://github.com/matiasoviedo28/LLM**
+
+It's Docker + Ollama + a model of your choice (Gemma 4 works well). Follow the setup there, then come back here and do this instead of the normal setup:
+
+**1. Make sure your local LLM stack is running**
+
+```bash
+# In the LLM repo
+docker compose up -d
+```
+
+**2. Set up `server/.env` from the template**
+
+```bash
+cp .env.example server/.env
+```
+
+Then open `server/.env` and set these two lines:
+
+```bash
+LLM_BASE_URL=http://localhost:11500
+OPENROUTER_MODEL=gemma4:e4b
+```
+
+No `OPENROUTER_API_KEY` needed when `LLM_BASE_URL` is set.
+
+**3. Run the app normally**
+
+```bash
+cd server && npm install && npm run dev
+cd ../client && npm install && npm run dev
+```
+
+That's it. Every trial now runs on your machine, zero cost per request.
+
+> **Heads up:** local models are slower than cloud APIs — expect trials to take 2–4 minutes on CPU-only hardware. Quality-wise, bigger models (Gemma 4 ~8B) handle the structured JSON prompts much better than smaller ones.
+
+---
+
 ## Requirements
 
 - Node 22+ (see `.nvmrc`)
-- An OpenRouter API key: https://openrouter.ai
+- An OpenRouter API key: https://openrouter.ai (not needed if using a local LLM — see above)
 
 ## Setup
 
